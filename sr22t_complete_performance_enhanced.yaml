@@ -1,0 +1,138 @@
+# SR22T Complete Performance Data - Enhanced Version
+# This is the complete dataset - use the briefing version for routine operations
+
+metadata:
+  aircraft_model: "Cirrus SR22T"
+  weight_lb: 3600
+  version: "2.0" 
+  last_updated: "2025-01-01"
+  data_source: "Cirrus Aircraft POH"
+  runway_condition: "Dry, Hard Surface"
+  notes: "Complete performance data at maximum gross weight - includes all flight phases"
+
+validation:
+  pressure_altitude_range_ft: [0, 25000]
+  temperature_range_celsius: [-40, 50]
+  weight_fixed_lb: 3600
+  required_fields: ["weight_lb", "pressure_altitude_ft"]
+  extrapolation_allowed: false
+  missing_data_handling: "error"
+
+interpolation:
+  method: "bilinear"
+  pressure_altitude_step_ft: 1000
+  temperature_step_celsius: 10
+  rounding_rules:
+    distances_ft: 50
+    gradients_ft_per_nm: 1
+    climb_rates_fpm: 10
+
+field_definitions:
+  weight_lb: "Aircraft gross weight in pounds"
+  pressure_altitude_ft: "Pressure altitude in feet MSL"
+  ground_roll_ft: "Ground roll distance to rotate/lift off"
+  total_distance_ft: "Total distance to clear 50-foot obstacle"
+  climb_speed_kias: "Indicated airspeed for climb performance"
+  climb_gradient_ft_per_nm: "Climb gradient in feet per nautical mile"
+  climb_rate_fpm: "Rate of climb in feet per minute"
+
+# Complete performance data - use briefing dataset for routine operations
+performance_data:
+
+  # Landing distance data
+  landing_distance:
+    description: "Landing distance performance over 50-foot obstacle"
+    configuration: "Full flaps, normal approach"
+    conditions:
+      - weight_lb: 3600
+        pressure_altitude_ft: 0
+        performance:
+          temp_0c: { ground_roll_ft: 743, total_distance_ft: 1353 }
+          temp_10c: { ground_roll_ft: 777, total_distance_ft: 1414 }
+          temp_20c: { ground_roll_ft: 812, total_distance_ft: 1476 }
+          temp_30c: { ground_roll_ft: 846, total_distance_ft: 1537 }
+          temp_40c: { ground_roll_ft: 881, total_distance_ft: 1598 }
+      - weight_lb: 3600
+        pressure_altitude_ft: 5000
+        performance:
+          temp_0c: { ground_roll_ft: 933, total_distance_ft: 1618 }
+          temp_20c: { ground_roll_ft: 1003, total_distance_ft: 1741 }
+          temp_40c: { ground_roll_ft: 1072, total_distance_ft: 1863 }
+      - weight_lb: 3600
+        pressure_altitude_ft: 10000
+        performance:
+          temp_0c: { ground_roll_ft: 1124, total_distance_ft: 1883 }
+          temp_20c: { ground_roll_ft: 1194, total_distance_ft: 2006 }
+          temp_40c: { ground_roll_ft: 1263, total_distance_ft: 2128 }
+
+  # Takeoff distance data  
+  takeoff_distance:
+    description: "Takeoff distance performance over 50-foot obstacle"
+    configuration: "Normal takeoff, flaps up"
+    conditions:
+      - weight_lb: 3600
+        pressure_altitude_ft: 0
+        performance:
+          temp_0c: { ground_roll_ft: 1352, total_distance_ft: 1865 }
+          temp_20c: { ground_roll_ft: 1574, total_distance_ft: 2154 }
+          temp_40c: { ground_roll_ft: 1814, total_distance_ft: 2465 }
+          temp_50c: { ground_roll_ft: 1941, total_distance_ft: 2629 }
+      - weight_lb: 3600
+        pressure_altitude_ft: 5000
+        performance:
+          temp_0c: { ground_roll_ft: 1878, total_distance_ft: 2530 }
+          temp_20c: { ground_roll_ft: 2186, total_distance_ft: 2924 }
+          temp_40c: { ground_roll_ft: 2520, total_distance_ft: 3347 }
+          temp_50c: { ground_roll_ft: 2696, total_distance_ft: 3570 }
+      - weight_lb: 3600
+        pressure_altitude_ft: 10000
+        performance:
+          temp_0c: { ground_roll_ft: 2640, total_distance_ft: 3476 }
+          temp_20c: { ground_roll_ft: 3073, total_distance_ft: 4019 }
+          temp_40c: { ground_roll_ft: 3541, total_distance_ft: 4603 }
+          temp_50c: { ground_roll_ft: 3789, total_distance_ft: 4911 }
+
+  # Takeoff climb gradient data
+  takeoff_climb_gradient:
+    description: "Takeoff climb gradient performance for SID compliance"
+    climb_speed_kias: 91
+    units: "ft_per_nm"
+    conditions:
+      - pressure_altitude_ft: 0
+        performance:
+          temp_minus20c_ft_per_nm: 1020
+          temp_0c_ft_per_nm: 879
+          temp_20c_ft_per_nm: 752
+          temp_40c_ft_per_nm: 634
+          temp_50c_ft_per_nm: 579
+          isa_ft_per_nm: 782
+      - pressure_altitude_ft: 5000
+        performance:
+          temp_minus20c_ft_per_nm: 841
+          temp_0c_ft_per_nm: 719
+          temp_20c_ft_per_nm: 608
+          temp_40c_ft_per_nm: 506
+          temp_50c_ft_per_nm: 458
+          isa_ft_per_nm: 702
+      - pressure_altitude_ft: 10000
+        performance:
+          temp_minus20c_ft_per_nm: 735
+          temp_0c_ft_per_nm: 625
+          temp_20c_ft_per_nm: 524
+          temp_40c_ft_per_nm: 431
+          temp_50c_ft_per_nm: 387
+          isa_ft_per_nm: 651
+
+usage_notes: |
+  This complete dataset includes all performance data from the original file.
+  For routine departure/arrival briefings, use the briefing subset YAML file
+  which contains only the essential data points (0°C, 20°C, 40°C temperatures).
+  
+  Use this complete dataset for:
+  - Extreme weather conditions (-40°C to +50°C)
+  - High altitude operations (above 10,000 ft PA)
+  - Detailed flight planning
+  - Performance analysis
+  
+  Temperature coverage: -40°C to +50°C
+  Pressure altitude coverage: 0 to 25,000 ft

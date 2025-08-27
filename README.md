@@ -14,13 +14,13 @@ A comprehensive performance calculation system for the Cirrus SR22T aircraft at 
 ## Files Structure
 
 ### Performance Data
-- `sr22t_3600lb_all_performance_data.yaml` - Complete performance dataset
+- `sr22t_3600lb_all_performance_data.yaml` - Complete performance dataset (original format)
 - `sr22t_briefing_performance_enhanced.yaml` - Essential data for routine briefings
 - `sr22t_complete_performance_enhanced.yaml` - Enhanced complete dataset with metadata
 
 ### Code & Utilities
-- `YAML Performance Data Utility Functions.txt` - JavaScript utility functions for performance calculations
-- `Improved Airport Departure/Arrival Briefing Template.md` - Comprehensive briefing template
+- `performance_calculator.js` - JavaScript utility functions for performance calculations
+- `briefing_template.md` - Comprehensive briefing template with calculation protocols
 
 ## Usage
 
@@ -40,11 +40,10 @@ const landingPerf = calculator.getLandingDistance(
     temperatureCelsius
 );
 
-// Check climb gradient capability
-const climbGradient = calculator.getTakeoffClimbGradient(
-    pressureAltitudeFt, 
-    temperatureCelsius
-);
+// Calculate atmospheric conditions
+const pressureAltitude = calculator.calculatePressureAltitude(fieldElevationFt, altimeterInHg);
+const densityAltitude = calculator.calculateDensityAltitude(pressureAltitudeFt, oatCelsius);
+const windComponents = calculator.calculateWindComponents(runwayHeading, windDirection, windSpeed);
 ```
 
 ### Briefing Generation
@@ -68,6 +67,7 @@ Use the provided briefing template to generate comprehensive departure/arrival b
 - **Error Handling**: Stops calculations if critical data is missing or invalid
 - **Cross-Validation**: Multiple calculation methods for density altitude verification
 - **Conservative Margins**: Built-in safety factors for performance planning
+- **No Extrapolation**: Will not calculate performance outside published data ranges
 
 ## Requirements
 
@@ -75,7 +75,17 @@ Use the provided briefing template to generate comprehensive departure/arrival b
   - Pressure Altitude: 0-25,000 ft (briefing version: 0-10,000 ft)
   - Temperature: -40°C to +50°C (briefing version: 0°C to 40°C)
 - Weather data must be current (<70 minutes old)
-- No extrapolation beyond published performance data
+- JavaScript environment for utility functions
+
+## File Descriptions
+
+| File | Purpose | Use Case |
+|------|---------|----------|
+| `sr22t_3600lb_all_performance_data.yaml` | Original complete dataset | Development, analysis, extreme conditions |
+| `sr22t_briefing_performance_enhanced.yaml` | Routine briefing data | Daily operations, common conditions |
+| `sr22t_complete_performance_enhanced.yaml` | Enhanced complete dataset | Advanced planning, full range operations |
+| `performance_calculator.js` | Core calculation functions | Integration into applications |
+| `briefing_template.md` | Standardized briefing format | Operational procedures |
 
 ## Contributing
 
@@ -97,4 +107,4 @@ Always cross-reference with official aircraft documentation and current weather 
 
 ## License
 
-[Choose appropriate license - MIT, Apache 2.0, etc.]
+MIT License - See LICENSE file for details
