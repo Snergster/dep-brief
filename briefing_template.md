@@ -13,7 +13,10 @@
 - **Weather**: Live METAR (aviationweather.gov) – **must be <70 min old**  
 - **If METAR is unavailable or older than 70 min, STOP and request wind, temp, and altimeter values from the user before proceeding**  
 - **Runway info**: FAA Chart Supplement / Airport Diagram  
-- **Performance**: SR22T 3600 lb (YAML in project)  
+- **Performance**: SR22T 3600 lb JSON data from GitHub repository
+  - **Primary source**: `https://github.com/Snergster/dep-brief/blob/main/sr22t_complete.json`
+  - **Cache policy**: Download once per session, reuse cached data for subsequent briefings
+  - **Fallback**: Check for local copy if GitHub unavailable, otherwise STOP with error
 
 ---
 
@@ -21,7 +24,7 @@
 
 ### 0) Pre-flight Validation Checks
 - ✅ **METAR age acceptable** (<70 minutes old)
-- ✅ **Performance data accessible** (YAML files available)
+- ✅ **Performance data accessible** (GitHub JSON or local fallback available)
 - ✅ **Airport elevation confirmed** from official sources
 - ✅ **All required inputs available** (wind, temp, altimeter, runway data)
 
@@ -53,18 +56,22 @@
 - Rounding: nearest **1 kt**
 
 ### 6) Takeoff & Landing Performance (SR22T 3600 lb)
-- **Source of truth**: Performance YAML files in project
-- **Mandatory access**: Performance values must always be pulled from YAML
-- **If YAML cannot be accessed, STOP and notify the user. Do not proceed with placeholders.**
-- Interpolation: **bilinear** across **pressure altitude** and **temperature**
-- **No extrapolation**: If conditions are outside table bounds, **STOP** with message: 
-  > "Pressure altitude/temperature outside POH performance data range. No calculation available - STOP"
-- Apply **only** corrections explicitly in the YAML; do **not** invent wind/grass/contamination factors
-- Output rounding: ground roll and 50‑ft distances to nearest **50 ft**
+- **Source of truth**: GitHub JSON file (`https://github.com/Snergster/dep-brief/blob/main/sr22t_complete.json`)
+- **Data retrieval protocol**:
+  1. **First attempt**: Fetch from GitHub repository
+  2. **Cache**: Store JSON data in session for reuse
+  3. **Fallback**: Check for local copy if GitHub unavailable
+  4. **Error condition**: If neither source available, **STOP** with message: "Cannot access SR22T performance data from GitHub or local fallback"
+- **Performance calculation**:
+  - Interpolation: **bilinear** across **pressure altitude** and **temperature**
+  - **No extrapolation**: If conditions are outside table bounds, **STOP** with message: 
+    > "Pressure altitude/temperature outside POH performance data range. No calculation available - STOP"
+  - Apply **only** corrections explicitly in the JSON; do **not** invent wind/grass/contamination factors
+  - Output rounding: ground roll and 50‑ft distances to nearest **50 ft**
 
 ### 7) SID Climb Gradient (91 KIAS)
 - Required gradient: take **ft/NM** directly from published SID procedure  
-- Available gradient: use YAML **ft/NM** data with **bilinear interpolation**
+- Available gradient: use GitHub JSON **ft/NM** data with **bilinear interpolation**
 - **Decision logic**: report **Meets / Does Not Meet**, plus margin in **ft/NM**
 - **If insufficient performance**: output **"DO NOT DEPART: SID gradient not met"**
 
@@ -88,8 +95,9 @@
 - **Suspicious weather data**: Flag but continue with warning
 
 ### Performance Data Issues  
-- **YAML files inaccessible**: STOP → "Cannot access performance data files"
-- **Conditions outside data bounds**: STOP → "Conditions outside aircraft performance envelope"
+- **GitHub JSON unavailable AND no local fallback**: STOP → "Cannot access SR22T performance data from GitHub repository or local fallback copy"
+- **GitHub available but JSON malformed**: STOP → "Performance data file corrupted or invalid format"
+- **Conditions outside data bounds**: STOP → "Flight conditions outside aircraft performance envelope (PA: [X] ft, Temp: [X]°C)"
 - **Interpolation seems unreasonable**: Flag and continue with warning
 
 ### Calculation Issues
@@ -184,7 +192,7 @@
 
 ### Before Starting Each Briefing:
 1. **Verify METAR timestamp** - must be <70 minutes old
-2. **Confirm performance data access** - test YAML file availability  
+2. **Confirm performance data access** - test GitHub JSON availability or local fallback
 3. **Cross-check airport elevation** with multiple sources when possible
 4. **Validate all user inputs** before calculations
 
@@ -199,3 +207,14 @@
 2. **Check passenger briefing completeness** - safety items covered?
 3. **Verify emergency information accuracy** - altitudes, frequencies, airports
 4. **Ensure briefing addresses specific conditions** - don't use generic language
+
+---
+
+## Technical Implementation Notes
+
+### GitHub Data Retrieval
+- **URL**: `https://github.com/Snergster/dep-brief/blob/main/sr22t_complete.json`
+- **Method**: Use raw GitHub URL for direct JSON access: `https://raw.githubusercontent.com/Snergster/dep-brief/main/sr22t_complete.json`
+- **Caching**: Store retrieved JSON in session variable to avoid multiple API calls
+- **Validation**: Verify JSON structure matches expected schema before use
+- **Error handling**: Graceful degradation to local fallback, then hard stop if neither available
