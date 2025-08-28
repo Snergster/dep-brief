@@ -69,11 +69,44 @@
   - Apply **only** corrections explicitly in the JSON; do **not** invent wind/grass/contamination factors
   - Output rounding: ground roll and 50‑ft distances to nearest **50 ft**
 
-### 7) SID Climb Gradient (91 KIAS)
-- Required gradient: take **ft/NM** directly from published SID procedure  
-- Available gradient: use GitHub JSON **ft/NM** data with **bilinear interpolation**
-- **Decision logic**: report **Meets / Does Not Meet**, plus margin in **ft/NM**
-- **If insufficient performance**: output **"DO NOT DEPART: SID gradient not met"**
+### 7) SID Departure Checks (two speeds: 91 KIAS and 120 KIAS)
+
+#### 7.1 Pull the published requirement
+- **SID requirement (ft/NM)**: `[REQUIRED_FT_PER_NM]`  
+  - Example (KBZN BOBKT5 RWY 12): **295 ft/NM to 8600 MSL**. :contentReference[oaicite:1]{index=1}
+- Store target altitude and any step-ups: `[TARGET_ALT_MSL]`
+
+#### 7.2 Compute required **fpm** at each speed
+- Formula (FAA): `required_fpm = (required_ft_per_nm × groundspeed_kt) ÷ 60`.  
+  - Use **groundspeed**, not IAS. Compute GS from TAS at today’s DA minus/plus runway-aligned wind.  
+  - TAS approximation: `KTAS ≈ KIAS × (1 + 0.02 × DA_thousands)` (good enough for the first 2–3 minutes of climb).  
+  - Head/tailwind: use runway-aligned component from METAR wind.
+- Round required fpm to nearest **10 fpm**.
+
+Compute twice:
+- **91 KIAS (flaps 50%)** → `GS91` → `required_fpm_91`.
+- **120 KIAS (flaps up)** → `GS120` → `required_fpm_120`.
+
+*(Why this method: IFR departures are designed around ft/NM, and FAA’s TPP tables convert ft/NM ↔ fpm using GS. Don’t scale a 91-KIAS gradient to 120; compute the fpm requirement at the new GS and compare to published ROC/gradient at that speed.)* :contentReference[oaicite:2]{index=2}
+
+#### 7.3 Pull **available** performance from your JSON
+- **At 91 KIAS**: use your “takeoff climb gradient 91 KIAS” table → `available_ft_per_nm_91`.  
+- **At 120 KIAS**: prefer your “enroute climb gradient 120 KIAS.” If only **ROC120** is available, convert to gradient with today’s `GS120`:  
+  - `available_ft_per_nm_120 = (ROC120_fpm × 60) ÷ GS120`.
+- Interpolation: **bilinear** on PA and OAT. **No extrapolation** outside table bounds.
+
+#### 7.4 Decision logic and margins
+- For each speed:
+  - `margin_ft_per_nm = available_ft_per_nm − required_ft_per_nm`.
+  - Also report **fpm** margin where applicable.
+- Results:
+  - If `margin_ft_per_nm ≥ 0`: **MEETS** (PASS)  
+  - Else: **DOES NOT MEET — DO NOT DEPART** (and state shortfall)
+- Persist both speed checks in the briefing output.
+
+#### 7.5 Guardrails
+- If METAR age > 70 min or perf JSON missing → **STOP**.  
+- If only 91-KIAS tables exist and no 120-KIAS data/ROC → show 120 **required** fpm but mark **“available @120 unavailable — not evaluated.”**
 
 ### 8) Abort Point & Safety Margins
 - Default abort point: **50‑ft obstacle distance + 15% buffer**
